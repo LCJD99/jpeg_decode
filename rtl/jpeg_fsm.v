@@ -51,8 +51,6 @@ output reg [3:0] i_in_mcu,
 output reg [3:0] i_in_mcu_i2,
 output reg [12:0] x_mcu_rgb,y_mcu_rgb,
 
-output pic_end,
-
 input out_empty
 );
 
@@ -73,7 +71,6 @@ assign dht_find = bit_out[63:48] == 16'hffc4;
 assign sos_find = bit_out[63:48] == 16'hffda;
 assign eoi_find = bit_out[63:48] == 16'hffd9;
 
-assign pic_end = state == `state_rst;
 
 always@(posedge clk)
   if(rst)

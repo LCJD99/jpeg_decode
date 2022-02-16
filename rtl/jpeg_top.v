@@ -1,10 +1,7 @@
 module jpeg_top( 
    clk, rst, 
    ai_we, ai_data, ao_next,
-   bi_next, bo_we, bo_begin, bo_end, bo_data, 
-   
-   bo_type
-   
+   bi_next, bo_we, bo_begin, bo_end, bo_data, bo_type
    
 );
 
@@ -30,13 +27,21 @@ wire [12:0] x_mcu_o,y_mcu_o;
 wire bo_we;
 wire [7:0] bo_r,bo_g,bo_b;
 wire [7:0] bo_adr;
-wire pic_end;
+
 
     jpeg_dec jpeg_dec(
-        .clk(clk),.rst(rst),
-        .din(ai_data),.we(ai_we),.next(ao_next),
-        .width(width),.heigth(heigth),.pic_is_411(pic_is_411),
-        .mcu_w(mcu_w),.mcu_h(mcu_h),
+        .clk(clk),
+        .rst(rst),
+        .ai_we     ( ai_we ),
+        .ao_next   ( ao_next ),
+        .ai_data   ( ai_data ),
+
+        .width(width),
+        .heigth(heigth),
+        .pic_is_411(pic_is_411),
+
+        .mcu_w(mcu_w),
+        .mcu_h(mcu_h),
         .res_avali(res_avali),
         
         .x_mcu_o(x_mcu_o),
@@ -47,9 +52,7 @@ wire pic_end;
         .bo_r     ( bo_r ),
         .bo_g     ( bo_g ),
         .bo_b     ( bo_b ),
-        .bo_adr   ( bo_adr ),
-
-        .pic_end(pic_end)
+        .bo_adr   ( bo_adr )
     );
 
 assign bo_begin = bo_we & x_mcu_o == 0 & y_mcu_o == 0 & bo_adr == 0;
