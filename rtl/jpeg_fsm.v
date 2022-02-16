@@ -1,6 +1,3 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
 module jpeg_fsm(
 input clk,rst,
 
@@ -22,7 +19,6 @@ output reg [1:0] dq_state,
 output reg [1:0] idct1_state,
 output reg [1:0] idct2_state,
 output reg [1:0] rgb_state,
-output reg [1:0] out_state,
 
 input pic_is_411,
 input [15:0] width,heigth,
@@ -57,12 +53,7 @@ output reg [12:0] x_mcu_rgb,y_mcu_rgb,
 
 output pic_end,
 
-input fifo_full,
-input out_end,
-input last_one,
-
-input full_0,full_1
-
+input out_empty
 );
 
 wire sos_end;
@@ -110,9 +101,12 @@ always@(posedge clk)
   end   
 
 
-assign rd_end = state == `state_end & dq_state == `dq_state_idle & idct1_state == `idct1_state_idle &
-                idct2_state == `idct2_state_idle & rgb_state == `rgb_state_idle &
-                out_state == `out_state_idle & !full_0 & !full_1;
+	assign rd_end = 
+		state == `state_end & 
+		dq_state == `dq_state_idle & 
+		idct1_state == `idct1_state_idle &
+        idct2_state == `idct2_state_idle & 
+		rgb_state == `rgb_state_idle & out_empty;
 
 
 
@@ -379,23 +373,11 @@ always@(posedge clk)
     	`rgb_state_store:   rgb_state <= pic_is_411 ? 
     	                                 (i_in_mcu_o == 5 ? `rgb_state_wait : `rgb_state_idle) :
     	                                 (i_in_mcu_o == 2 ? `rgb_state_wait : `rgb_state_idle);
-    	`rgb_state_wait:    rgb_state <= out_end ? `rgb_state_idle : `rgb_state_wait;
+    	`rgb_state_wait:    rgb_state <= out_empty ? `rgb_state_idle : `rgb_state_wait;
     	default:;
     endcase
 
-always@(posedge clk)
-  if(rst)
-    out_state <= `out_state_idle;
-  else 
-    case(out_state) 
-    	`out_state_idle:  out_state <= fifo_full ? `out_state_out : `out_state_idle;
-    	`out_state_out:   out_state <= rd ? (last_one ? `out_state_out2 : `out_state_out) : 
-    	                    `out_state_out;
-      `out_state_out2:  out_state <= rd ? `out_state_idle : `out_state_out2;                 
-    	default:;
-    endcase 
 
-assign ready = out_state == `out_state_out | out_state == `out_state_out2;
 
 reg [3:0] i_in_mcu_dq;
 reg [12:0] x_mcu_dq,y_mcu_dq;

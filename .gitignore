@@ -1,3 +1,6 @@
 
 *.pdf
 *.exe
+*.vcd
+*.out
+*.gtkw

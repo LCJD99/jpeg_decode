@@ -1,6 +1,3 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
 module jpeg_sof(
 input clk,rst,
 

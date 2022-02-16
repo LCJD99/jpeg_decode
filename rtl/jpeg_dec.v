@@ -1,6 +1,3 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
 module jpeg_dec(
 input clk,rst,
 
@@ -11,15 +8,16 @@ output next,
 output [15:0] width,heigth,
 output res_avali,
 
-input rd,
-output ready,
-
 output pic_is_411,
 output [12:0] x_mcu_o,y_mcu_o,
 output [12:0] mcu_w,mcu_h,
 
-output [7:0] rgb_i,
-output [7:0] r,g,b,
+    output          bo_we,
+	output [7:0]    bo_r,
+	output [7:0]    bo_g,
+	output [7:0]    bo_b,
+	output [7:0]    bo_adr,
+	input           bi_next,
 
 output pic_end
 );
@@ -42,7 +40,6 @@ wire [1:0] dq_state;
 wire [1:0] idct1_state;
 wire [1:0] idct2_state;
 wire [1:0] rgb_state;
-wire [1:0] out_state;
 
 wire soi_find;
 wire sof_find;
@@ -94,20 +91,26 @@ wire [15:0] out_60,out_61,out_62,out_63,out_64,out_65,out_66,out_67;
 wire [15:0] out_70,out_71,out_72,out_73,out_74,out_75,out_76,out_77;
 
 wire fifo_full;
-wire out_end;
-wire last_one;
+wire out_empty;
+
 
 wire [12:0] x_mcu_rgb,y_mcu_rgb;
 
 wire full_0,full_1;
 
 
-jpeg_stream jpeg_stream(
-  .clk(clk),.rst(rst),
-  .din(din),.we(we),.next(next),
-  .pc_delta(pc_delta),
-  .bit_out(bit_out),.bit_avali(bit_avali)
-);
+    jpeg_stream jpeg_stream(
+        .ai_we     ( we ),
+        .ao_next   ( next ),
+        .ai_data   ( din ),
+
+        .bit_avali ( bit_avali ),
+        .bit_out   ( bit_out ),
+        .bit_eaten ( pc_delta[6:0] ),
+
+        .clk(clk),
+        .rst(rst)
+    );
 
 jpeg_fsm jpeg_fsm(
   .clk(clk),.rst(rst),
@@ -116,7 +119,7 @@ jpeg_fsm jpeg_fsm(
   .dht_state(dht_state),.dht_cal_state(dht_cal_state),.sos_state(sos_state),
   .dec_state(dec_state),.dc_state(dc_state),.ac_state(ac_state),
   .dq_state(dq_state),.idct1_state(idct1_state),.idct2_state(idct2_state),
-  .rgb_state(rgb_state),.out_state(out_state),
+  .rgb_state(rgb_state),
   .width(width),.heigth(heigth),.pic_is_411(pic_is_411),
   .soi_find(soi_find),.sof_find(sof_find),.dqt_find(dqt_find),
   .dht_find(dht_find),.sos_find(sos_find),.eoi_find(eoi_find),
@@ -128,8 +131,8 @@ jpeg_fsm jpeg_fsm(
   .dq_eat(dq_eat),.ready(ready),
   .mcu_w(mcu_w),.mcu_h(mcu_h),
   .x_mcu_rgb(x_mcu_rgb),.y_mcu_rgb(y_mcu_rgb),
-  .pic_end(pic_end),.full_0(full_0),.full_1(full_1),
-  .fifo_full(fifo_full),.out_end(out_end),.last_one(last_one)
+  .pic_end(pic_end),
+  .out_empty(out_empty)
   
 );
 
@@ -238,11 +241,15 @@ jpeg_idct jpeg_idct(
 
 
 jpeg_rgb jpeg_rgb(
-  .clk(clk),.rst(rst),.state(state),
-  .idct2_state(idct2_state),.rgb_state(rgb_state),.out_state(out_state),
-  .pic_is_411(pic_is_411),.i_in_mcu_i2(i_in_mcu_i2),.rd(rd),
-  .x_mcu_rgb(x_mcu_rgb),.y_mcu_rgb(y_mcu_rgb),
-  .x_mcu_o(x_mcu_o),.y_mcu_o(y_mcu_o),
+  .state(state),
+  .idct2_state(idct2_state),
+  .rgb_state(rgb_state),
+  .pic_is_411(pic_is_411),
+  .i_in_mcu_i2(i_in_mcu_i2),
+  .x_mcu_rgb(x_mcu_rgb),
+  .y_mcu_rgb(y_mcu_rgb),
+  .x_mcu_o(x_mcu_o),
+  .y_mcu_o(y_mcu_o),
   .out_00(out_00),.out_01(out_01),.out_02(out_02),.out_03(out_03),
   .out_04(out_04),.out_05(out_05),.out_06(out_06),.out_07(out_07),
   .out_10(out_10),.out_11(out_11),.out_12(out_12),.out_13(out_13),
@@ -260,11 +267,18 @@ jpeg_rgb jpeg_rgb(
   .out_70(out_70),.out_71(out_71),.out_72(out_72),.out_73(out_73),
   .out_74(out_74),.out_75(out_75),.out_76(out_76),.out_77(out_77),
   
-  .fifo_full(fifo_full),.out_end(out_end),.last_one(last_one),
-  .rgb_i(rgb_i),.r(r),.g(g),.b(b),
-  .full_0(full_0),.full_1(full_1)
+  .out_empty(out_empty),
 
-);
+        .bo_we    ( bo_we ),
+        .bi_next  ( bi_next ),
+        .bo_r     ( bo_r ),
+        .bo_g     ( bo_g ),
+        .bo_b     ( bo_b ),
+        .bo_adr   ( bo_adr ),
+
+        .clk(clk),
+        .rst(rst)
+    );
 
 
 

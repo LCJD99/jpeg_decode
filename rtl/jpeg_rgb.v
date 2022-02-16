@@ -1,63 +1,149 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
 module jpeg_rgb(
-input clk,rst,
-input rd,
 
-input [3:0] state,
-input [1:0] idct2_state,
-input [1:0] rgb_state,
-input [1:0] out_state,
+	output          bo_we,
+	output [7:0]    bo_r,
+	output [7:0]    bo_g,
+	output [7:0]    bo_b,
+	output [7:0]    bo_adr,
+	input           bi_next,
+	
 
+	input [3:0] state,
+	input [1:0] idct2_state,
+	input [1:0] rgb_state,
 
-input pic_is_411,
-input [3:0] i_in_mcu_i2,
-
-
-input [15:0] out_00,out_01,out_02,out_03,out_04,out_05,out_06,out_07,
-input [15:0] out_10,out_11,out_12,out_13,out_14,out_15,out_16,out_17,
-input [15:0] out_20,out_21,out_22,out_23,out_24,out_25,out_26,out_27,
-input [15:0] out_30,out_31,out_32,out_33,out_34,out_35,out_36,out_37,
-input [15:0] out_40,out_41,out_42,out_43,out_44,out_45,out_46,out_47,
-input [15:0] out_50,out_51,out_52,out_53,out_54,out_55,out_56,out_57,
-input [15:0] out_60,out_61,out_62,out_63,out_64,out_65,out_66,out_67,
-input [15:0] out_70,out_71,out_72,out_73,out_74,out_75,out_76,out_77,
+	input pic_is_411,
+	input [3:0] i_in_mcu_i2,
 
 
-output fifo_full,
-output out_end,
-output last_one,
+	input [15:0] out_00,out_01,out_02,out_03,out_04,out_05,out_06,out_07,
+	input [15:0] out_10,out_11,out_12,out_13,out_14,out_15,out_16,out_17,
+	input [15:0] out_20,out_21,out_22,out_23,out_24,out_25,out_26,out_27,
+	input [15:0] out_30,out_31,out_32,out_33,out_34,out_35,out_36,out_37,
+	input [15:0] out_40,out_41,out_42,out_43,out_44,out_45,out_46,out_47,
+	input [15:0] out_50,out_51,out_52,out_53,out_54,out_55,out_56,out_57,
+	input [15:0] out_60,out_61,out_62,out_63,out_64,out_65,out_66,out_67,
+	input [15:0] out_70,out_71,out_72,out_73,out_74,out_75,out_76,out_77,
 
-output [7:0] rgb_i,
-output reg [7:0] r,g,b,
+	output reg out_empty,
 
-input [12:0] x_mcu_rgb,y_mcu_rgb,
-output reg [12:0] x_mcu_o,y_mcu_o,
+	input  [12:0] x_mcu_rgb,y_mcu_rgb,
+	output [12:0] x_mcu_o,y_mcu_o,
 
-output reg full_0,full_1
+	input clk,
+	input rst
 
 );
 
+//------------------------------------
+// two buffer
+//------------------------------------
+	reg [15:0] y0  [255:0];
+	reg [15:0] cr0 [63:0];
+	reg [15:0] cb0 [63:0];
 
-reg [15:0] y0 [255:0];
-reg [15:0] y1 [255:0];
+	reg [15:0] y1  [255:0];
+	reg [15:0] cr1 [63:0];
+	reg [15:0] cb1 [63:0];
 
-reg [15:0] cr0 [63:0];
-reg [15:0] cr1 [63:0];
 
-reg [15:0] cb0 [63:0];
-reg [15:0] cb1 [63:0];
 
-reg pp_rgb;
+//--------------------------------------------------------
+// pp_rgb
+// pp_rgb == 0:  decode write 0, output 1
+// pp_rgb == 1:  decode write 1, output 0
+//--------------------------------------------------------
+	reg pp_rgb;
+	always@(posedge clk)begin
+		if(rst)
+			pp_rgb <= 0;
+		else if(state == `state_rst)
+			pp_rgb <= 0;
+		else if(rgb_state == `rgb_state_wait & out_empty)  
+			pp_rgb <= ~pp_rgb;
+	end
+ 
+//------------------------------------------------
+// y,cb,cr addr for output
+//------------------------------------------------
+	reg  [7:0] y_adr;
+	reg  [5:0] c_adr; 
 
-always@(posedge clk)
-  if(rst)
-    pp_rgb <= 0;
-  else if(state == `state_rst)
-    pp_rgb <= 0;
-  else if(rgb_state == `rgb_state_wait & out_end)  
-    pp_rgb <= ~pp_rgb;
+	wire [7:0] y_adr_n = y_adr + 8'd1;
+	wire       last_pix = pic_is_411 ? y_adr == 8'd255 : y_adr == 8'd63;
+
+	always@(posedge clk)begin
+		if (rst) 
+			out_empty <= 1'b1;
+		else if (rgb_state == `rgb_state_wait & out_empty)
+			out_empty <= 1'b0;
+		else if (!fifo_out_full & !out_empty & last_pix)
+			out_empty <= 1'b1;
+	end 
+
+	always@(posedge clk)begin
+		if(rst)begin
+			y_adr <= 'd0;
+			c_adr <= 'd0;
+		end else if (state == `state_rst)begin
+			y_adr <= 'd0;
+			c_adr <= 'd0;
+		end else if ((bi_next | !bo_we) & !out_empty)begin
+			if (last_pix)begin
+				y_adr <= 'd0;
+				c_adr <= 'd0;
+			end else begin
+				y_adr <= y_adr_n;
+				c_adr <= pic_is_411 ? {y_adr_n[7:5],y_adr_n[3:1]} : y_adr_n[5:0];
+			end 
+		end
+	end
+
+	wire [15:0] y_cur  = pp_rgb == 0 ? y1[y_adr]  : y0[y_adr];
+	wire [15:0] cr_cur = pp_rgb == 0 ? cr1[c_adr] : cr0[c_adr];                                                                 
+	wire [15:0] cb_cur = pp_rgb == 0 ? cb1[c_adr] : cb0[c_adr];
+		
+	wire [7:0] outr,outg,outb;
+	calrgb calrgb(
+		.y    ( y_cur ),
+		.cr   ( cr_cur ),
+		.cb   ( cb_cur ),
+		.outr ( outr ),
+		.outg ( outg ),
+		.outb ( outb )
+		);
+
+	reg [12:0] x_mcu_out;
+	reg [12:0] y_mcu_out;
+	always@(posedge clk)begin
+		if(rst)begin
+			x_mcu_out <= 0;
+			y_mcu_out <= 0;
+		end else if(rgb_state == `rgb_state_wait & out_empty)begin
+			x_mcu_out <= x_mcu_rgb;
+			y_mcu_out <= y_mcu_rgb;
+		end  
+	end
+
+	wire        fifo_out_full;
+	wire        fifo_out_empty;
+	fifo_sync #(.AW(1), .DW(58)) fifo_out(
+		.wr    ( !out_empty ),
+		.din   ( {outr, outg, outb, y_adr, x_mcu_out, y_mcu_out} ),
+		.full  ( fifo_out_full ),
+		.rd    ( bi_next ),
+		.dout  ( {bo_r, bo_g, bo_b, bo_adr, x_mcu_o, y_mcu_o} ),
+		.empty ( fifo_out_empty ),
+
+		.clk(clk),
+		.rst(rst)
+	);
+
+	assign bo_we = !fifo_out_empty;
+
+//---------------------------------------
+//---------------------------------------
+	
 
 always@(posedge clk)begin
   if(rgb_state == `rgb_state_idle & idct2_state == `idct2_state_wait & pp_rgb == 0)begin
@@ -70,7 +156,7 @@ always@(posedge clk)begin
   				y0[20] <= out_14; y0[21] <= out_15; y0[22] <= out_16; y0[23] <= out_17;
   				y0[32] <= out_20; y0[33] <= out_21; y0[34] <= out_22; y0[35] <= out_23;
   				y0[36] <= out_24; y0[37] <= out_25; y0[38] <= out_26; y0[39] <= out_27;
-          y0[48] <= out_30; y0[49] <= out_31; y0[50] <= out_32; y0[51] <= out_33;
+          		y0[48] <= out_30; y0[49] <= out_31; y0[50] <= out_32; y0[51] <= out_33;
   				y0[52] <= out_34; y0[53] <= out_35; y0[54] <= out_36; y0[55] <= out_37;
   				y0[64] <= out_40; y0[65] <= out_41; y0[66] <= out_42; y0[67] <= out_43;
   				y0[68] <= out_44; y0[69] <= out_45; y0[70] <= out_46; y0[71] <= out_47;
@@ -88,7 +174,7 @@ always@(posedge clk)begin
   				y0[28] <= out_14; y0[29] <= out_15; y0[30] <= out_16; y0[31] <= out_17;
   				y0[40] <= out_20; y0[41] <= out_21; y0[42] <= out_22; y0[43] <= out_23;
   				y0[44] <= out_24; y0[45] <= out_25; y0[46] <= out_26; y0[47] <= out_27;
-          y0[56] <= out_30; y0[57] <= out_31; y0[58] <= out_32; y0[59] <= out_33;
+          		y0[56] <= out_30; y0[57] <= out_31; y0[58] <= out_32; y0[59] <= out_33;
   				y0[60] <= out_34; y0[61] <= out_35; y0[62] <= out_36; y0[63] <= out_37;
   				y0[72] <= out_40; y0[73] <= out_41; y0[74] <= out_42; y0[75] <= out_43;
   				y0[76] <= out_44; y0[77] <= out_45; y0[78] <= out_46; y0[79] <= out_47;
@@ -106,7 +192,7 @@ always@(posedge clk)begin
   				y0[148] <= out_14; y0[149] <= out_15; y0[150] <= out_16; y0[151] <= out_17;
   				y0[160] <= out_20; y0[161] <= out_21; y0[162] <= out_22; y0[163] <= out_23;
   				y0[164] <= out_24; y0[165] <= out_25; y0[166] <= out_26; y0[167] <= out_27;
-          y0[176] <= out_30; y0[177] <= out_31; y0[178] <= out_32; y0[179] <= out_33;
+          		y0[176] <= out_30; y0[177] <= out_31; y0[178] <= out_32; y0[179] <= out_33;
   				y0[180] <= out_34; y0[181] <= out_35; y0[182] <= out_36; y0[183] <= out_37;
   				y0[192] <= out_40; y0[193] <= out_41; y0[194] <= out_42; y0[195] <= out_43;
   				y0[196] <= out_44; y0[197] <= out_45; y0[198] <= out_46; y0[199] <= out_47;
@@ -124,7 +210,7 @@ always@(posedge clk)begin
   				y0[156] <= out_14; y0[157] <= out_15; y0[158] <= out_16; y0[159] <= out_17;
   				y0[168] <= out_20; y0[169] <= out_21; y0[170] <= out_22; y0[171] <= out_23;
   				y0[172] <= out_24; y0[173] <= out_25; y0[174] <= out_26; y0[175] <= out_27;
-          y0[184] <= out_30; y0[185] <= out_31; y0[186] <= out_32; y0[187] <= out_33;
+          		y0[184] <= out_30; y0[185] <= out_31; y0[186] <= out_32; y0[187] <= out_33;
   				y0[188] <= out_34; y0[189] <= out_35; y0[190] <= out_36; y0[191] <= out_37;
   				y0[200] <= out_40; y0[201] <= out_41; y0[202] <= out_42; y0[203] <= out_43;
   				y0[204] <= out_44; y0[205] <= out_45; y0[206] <= out_46; y0[207] <= out_47;
@@ -142,7 +228,7 @@ always@(posedge clk)begin
   				cr0[12] <= out_14; cr0[13] <= out_15; cr0[14] <= out_16; cr0[15] <= out_17;
   				cr0[16] <= out_20; cr0[17] <= out_21; cr0[18] <= out_22; cr0[19] <= out_23;
   				cr0[20] <= out_24; cr0[21] <= out_25; cr0[22] <= out_26; cr0[23] <= out_27;
-          cr0[24] <= out_30; cr0[25] <= out_31; cr0[26] <= out_32; cr0[27] <= out_33;
+          		cr0[24] <= out_30; cr0[25] <= out_31; cr0[26] <= out_32; cr0[27] <= out_33;
   				cr0[28] <= out_34; cr0[29] <= out_35; cr0[30] <= out_36; cr0[31] <= out_37;
   				cr0[32] <= out_40; cr0[33] <= out_41; cr0[34] <= out_42; cr0[35] <= out_43;
   				cr0[36] <= out_44; cr0[37] <= out_45; cr0[38] <= out_46; cr0[39] <= out_47;
@@ -161,7 +247,7 @@ always@(posedge clk)begin
   				cb0[12] <= out_14; cb0[13] <= out_15; cb0[14] <= out_16; cb0[15] <= out_17;
   				cb0[16] <= out_20; cb0[17] <= out_21; cb0[18] <= out_22; cb0[19] <= out_23;
   				cb0[20] <= out_24; cb0[21] <= out_25; cb0[22] <= out_26; cb0[23] <= out_27;
-          cb0[24] <= out_30; cb0[25] <= out_31; cb0[26] <= out_32; cb0[27] <= out_33;
+          		cb0[24] <= out_30; cb0[25] <= out_31; cb0[26] <= out_32; cb0[27] <= out_33;
   				cb0[28] <= out_34; cb0[29] <= out_35; cb0[30] <= out_36; cb0[31] <= out_37;
   				cb0[32] <= out_40; cb0[33] <= out_41; cb0[34] <= out_42; cb0[35] <= out_43;
   				cb0[36] <= out_44; cb0[37] <= out_45; cb0[38] <= out_46; cb0[39] <= out_47;
@@ -177,12 +263,12 @@ always@(posedge clk)begin
   	end else begin
   		if(i_in_mcu_i2 == 0)begin
   			y0[0] <= out_00; y0[1] <= out_01; y0[2] <= out_02; y0[3] <= out_03;
-  		  y0[4] <= out_04; y0[5] <= out_05; y0[6] <= out_06; y0[7] <= out_07;
+  		  	y0[4] <= out_04; y0[5] <= out_05; y0[6] <= out_06; y0[7] <= out_07;
   			y0[8] <= out_10; y0[9] <= out_11; y0[10] <= out_12; y0[11] <= out_13;
   			y0[12] <= out_14; y0[13] <= out_15; y0[14] <= out_16; y0[15] <= out_17;
   			y0[16] <= out_20; y0[17] <= out_21; y0[18] <= out_22; y0[19] <= out_23;
   			y0[20] <= out_24; y0[21] <= out_25; y0[22] <= out_26; y0[23] <= out_27;
-        y0[24] <= out_30; y0[25] <= out_31; y0[26] <= out_32; y0[27] <= out_33;
+        	y0[24] <= out_30; y0[25] <= out_31; y0[26] <= out_32; y0[27] <= out_33;
   			y0[28] <= out_34; y0[29] <= out_35; y0[30] <= out_36; y0[31] <= out_37;
   			y0[32] <= out_40; y0[33] <= out_41; y0[34] <= out_42; y0[35] <= out_43;
   			y0[36] <= out_44; y0[37] <= out_45; y0[38] <= out_46; y0[39] <= out_47;
@@ -199,7 +285,7 @@ always@(posedge clk)begin
   			cr0[12] <= out_14; cr0[13] <= out_15; cr0[14] <= out_16; cr0[15] <= out_17;
   			cr0[16] <= out_20; cr0[17] <= out_21; cr0[18] <= out_22; cr0[19] <= out_23;
   			cr0[20] <= out_24; cr0[21] <= out_25; cr0[22] <= out_26; cr0[23] <= out_27;
-        cr0[24] <= out_30; cr0[25] <= out_31; cr0[26] <= out_32; cr0[27] <= out_33;
+        	cr0[24] <= out_30; cr0[25] <= out_31; cr0[26] <= out_32; cr0[27] <= out_33;
   			cr0[28] <= out_34; cr0[29] <= out_35; cr0[30] <= out_36; cr0[31] <= out_37;
   			cr0[32] <= out_40; cr0[33] <= out_41; cr0[34] <= out_42; cr0[35] <= out_43;
   			cr0[36] <= out_44; cr0[37] <= out_45; cr0[38] <= out_46; cr0[39] <= out_47;
@@ -216,7 +302,7 @@ always@(posedge clk)begin
   			cb0[12] <= out_14; cb0[13] <= out_15; cb0[14] <= out_16; cb0[15] <= out_17;
   			cb0[16] <= out_20; cb0[17] <= out_21; cb0[18] <= out_22; cb0[19] <= out_23;
   			cb0[20] <= out_24; cb0[21] <= out_25; cb0[22] <= out_26; cb0[23] <= out_27;
-        cb0[24] <= out_30; cb0[25] <= out_31; cb0[26] <= out_32; cb0[27] <= out_33;
+        	cb0[24] <= out_30; cb0[25] <= out_31; cb0[26] <= out_32; cb0[27] <= out_33;
   			cb0[28] <= out_34; cb0[29] <= out_35; cb0[30] <= out_36; cb0[31] <= out_37;
   			cb0[32] <= out_40; cb0[33] <= out_41; cb0[34] <= out_42; cb0[35] <= out_43;
   			cb0[36] <= out_44; cb0[37] <= out_45; cb0[38] <= out_46; cb0[39] <= out_47;
@@ -243,7 +329,7 @@ always@(posedge clk)begin
   				y1[20] <= out_14; y1[21] <= out_15; y1[22] <= out_16; y1[23] <= out_17;
   				y1[32] <= out_20; y1[33] <= out_21; y1[34] <= out_22; y1[35] <= out_23;
   				y1[36] <= out_24; y1[37] <= out_25; y1[38] <= out_26; y1[39] <= out_27;
-          y1[48] <= out_30; y1[49] <= out_31; y1[50] <= out_32; y1[51] <= out_33;
+          		y1[48] <= out_30; y1[49] <= out_31; y1[50] <= out_32; y1[51] <= out_33;
   				y1[52] <= out_34; y1[53] <= out_35; y1[54] <= out_36; y1[55] <= out_37;
   				y1[64] <= out_40; y1[65] <= out_41; y1[66] <= out_42; y1[67] <= out_43;
   				y1[68] <= out_44; y1[69] <= out_45; y1[70] <= out_46; y1[71] <= out_47;
@@ -261,7 +347,7 @@ always@(posedge clk)begin
   				y1[28] <= out_14; y1[29] <= out_15; y1[30] <= out_16; y1[31] <= out_17;
   				y1[40] <= out_20; y1[41] <= out_21; y1[42] <= out_22; y1[43] <= out_23;
   				y1[44] <= out_24; y1[45] <= out_25; y1[46] <= out_26; y1[47] <= out_27;
-          y1[56] <= out_30; y1[57] <= out_31; y1[58] <= out_32; y1[59] <= out_33;
+          		y1[56] <= out_30; y1[57] <= out_31; y1[58] <= out_32; y1[59] <= out_33;
   				y1[60] <= out_34; y1[61] <= out_35; y1[62] <= out_36; y1[63] <= out_37;
   				y1[72] <= out_40; y1[73] <= out_41; y1[74] <= out_42; y1[75] <= out_43;
   				y1[76] <= out_44; y1[77] <= out_45; y1[78] <= out_46; y1[79] <= out_47;
@@ -279,7 +365,7 @@ always@(posedge clk)begin
   				y1[148] <= out_14; y1[149] <= out_15; y1[150] <= out_16; y1[151] <= out_17;
   				y1[160] <= out_20; y1[161] <= out_21; y1[162] <= out_22; y1[163] <= out_23;
   				y1[164] <= out_24; y1[165] <= out_25; y1[166] <= out_26; y1[167] <= out_27;
-          y1[176] <= out_30; y1[177] <= out_31; y1[178] <= out_32; y1[179] <= out_33;
+          		y1[176] <= out_30; y1[177] <= out_31; y1[178] <= out_32; y1[179] <= out_33;
   				y1[180] <= out_34; y1[181] <= out_35; y1[182] <= out_36; y1[183] <= out_37;
   				y1[192] <= out_40; y1[193] <= out_41; y1[194] <= out_42; y1[195] <= out_43;
   				y1[196] <= out_44; y1[197] <= out_45; y1[198] <= out_46; y1[199] <= out_47;
@@ -297,7 +383,7 @@ always@(posedge clk)begin
   				y1[156] <= out_14; y1[157] <= out_15; y1[158] <= out_16; y1[159] <= out_17;
   				y1[168] <= out_20; y1[169] <= out_21; y1[170] <= out_22; y1[171] <= out_23;
   				y1[172] <= out_24; y1[173] <= out_25; y1[174] <= out_26; y1[175] <= out_27;
-          y1[184] <= out_30; y1[185] <= out_31; y1[186] <= out_32; y1[187] <= out_33;
+          		y1[184] <= out_30; y1[185] <= out_31; y1[186] <= out_32; y1[187] <= out_33;
   				y1[188] <= out_34; y1[189] <= out_35; y1[190] <= out_36; y1[191] <= out_37;
   				y1[200] <= out_40; y1[201] <= out_41; y1[202] <= out_42; y1[203] <= out_43;
   				y1[204] <= out_44; y1[205] <= out_45; y1[206] <= out_46; y1[207] <= out_47;
@@ -315,7 +401,7 @@ always@(posedge clk)begin
   				cr1[12] <= out_14; cr1[13] <= out_15; cr1[14] <= out_16; cr1[15] <= out_17;
   				cr1[16] <= out_20; cr1[17] <= out_21; cr1[18] <= out_22; cr1[19] <= out_23;
   				cr1[20] <= out_24; cr1[21] <= out_25; cr1[22] <= out_26; cr1[23] <= out_27;
-          cr1[24] <= out_30; cr1[25] <= out_31; cr1[26] <= out_32; cr1[27] <= out_33;
+          		cr1[24] <= out_30; cr1[25] <= out_31; cr1[26] <= out_32; cr1[27] <= out_33;
   				cr1[28] <= out_34; cr1[29] <= out_35; cr1[30] <= out_36; cr1[31] <= out_37;
   				cr1[32] <= out_40; cr1[33] <= out_41; cr1[34] <= out_42; cr1[35] <= out_43;
   				cr1[36] <= out_44; cr1[37] <= out_45; cr1[38] <= out_46; cr1[39] <= out_47;
@@ -334,7 +420,7 @@ always@(posedge clk)begin
   				cb1[12] <= out_14; cb1[13] <= out_15; cb1[14] <= out_16; cb1[15] <= out_17;
   				cb1[16] <= out_20; cb1[17] <= out_21; cb1[18] <= out_22; cb1[19] <= out_23;
   				cb1[20] <= out_24; cb1[21] <= out_25; cb1[22] <= out_26; cb1[23] <= out_27;
-          cb1[24] <= out_30; cb1[25] <= out_31; cb1[26] <= out_32; cb1[27] <= out_33;
+          		cb1[24] <= out_30; cb1[25] <= out_31; cb1[26] <= out_32; cb1[27] <= out_33;
   				cb1[28] <= out_34; cb1[29] <= out_35; cb1[30] <= out_36; cb1[31] <= out_37;
   				cb1[32] <= out_40; cb1[33] <= out_41; cb1[34] <= out_42; cb1[35] <= out_43;
   				cb1[36] <= out_44; cb1[37] <= out_45; cb1[38] <= out_46; cb1[39] <= out_47;
@@ -350,12 +436,12 @@ always@(posedge clk)begin
   	end else begin
   		if(i_in_mcu_i2 == 0)begin
   			y1[0] <= out_00; y1[1] <= out_01; y1[2] <= out_02; y1[3] <= out_03;
-  		  y1[4] <= out_04; y1[5] <= out_05; y1[6] <= out_06; y1[7] <= out_07;
+  		  	y1[4] <= out_04; y1[5] <= out_05; y1[6] <= out_06; y1[7] <= out_07;
   			y1[8] <= out_10; y1[9] <= out_11; y1[10] <= out_12; y1[11] <= out_13;
   			y1[12] <= out_14; y1[13] <= out_15; y1[14] <= out_16; y1[15] <= out_17;
   			y1[16] <= out_20; y1[17] <= out_21; y1[18] <= out_22; y1[19] <= out_23;
   			y1[20] <= out_24; y1[21] <= out_25; y1[22] <= out_26; y1[23] <= out_27;
-        y1[24] <= out_30; y1[25] <= out_31; y1[26] <= out_32; y1[27] <= out_33;
+        	y1[24] <= out_30; y1[25] <= out_31; y1[26] <= out_32; y1[27] <= out_33;
   			y1[28] <= out_34; y1[29] <= out_35; y1[30] <= out_36; y1[31] <= out_37;
   			y1[32] <= out_40; y1[33] <= out_41; y1[34] <= out_42; y1[35] <= out_43;
   			y1[36] <= out_44; y1[37] <= out_45; y1[38] <= out_46; y1[39] <= out_47;
@@ -372,7 +458,7 @@ always@(posedge clk)begin
   			cr1[12] <= out_14; cr1[13] <= out_15; cr1[14] <= out_16; cr1[15] <= out_17;
   			cr1[16] <= out_20; cr1[17] <= out_21; cr1[18] <= out_22; cr1[19] <= out_23;
   			cr1[20] <= out_24; cr1[21] <= out_25; cr1[22] <= out_26; cr1[23] <= out_27;
-        cr1[24] <= out_30; cr1[25] <= out_31; cr1[26] <= out_32; cr1[27] <= out_33;
+        	cr1[24] <= out_30; cr1[25] <= out_31; cr1[26] <= out_32; cr1[27] <= out_33;
   			cr1[28] <= out_34; cr1[29] <= out_35; cr1[30] <= out_36; cr1[31] <= out_37;
   			cr1[32] <= out_40; cr1[33] <= out_41; cr1[34] <= out_42; cr1[35] <= out_43;
   			cr1[36] <= out_44; cr1[37] <= out_45; cr1[38] <= out_46; cr1[39] <= out_47;
@@ -389,7 +475,7 @@ always@(posedge clk)begin
   			cb1[12] <= out_14; cb1[13] <= out_15; cb1[14] <= out_16; cb1[15] <= out_17;
   			cb1[16] <= out_20; cb1[17] <= out_21; cb1[18] <= out_22; cb1[19] <= out_23;
   			cb1[20] <= out_24; cb1[21] <= out_25; cb1[22] <= out_26; cb1[23] <= out_27;
-        cb1[24] <= out_30; cb1[25] <= out_31; cb1[26] <= out_32; cb1[27] <= out_33;
+        	cb1[24] <= out_30; cb1[25] <= out_31; cb1[26] <= out_32; cb1[27] <= out_33;
   			cb1[28] <= out_34; cb1[29] <= out_35; cb1[30] <= out_36; cb1[31] <= out_37;
   			cb1[32] <= out_40; cb1[33] <= out_41; cb1[34] <= out_42; cb1[35] <= out_43;
   			cb1[36] <= out_44; cb1[37] <= out_45; cb1[38] <= out_46; cb1[39] <= out_47;
@@ -406,149 +492,39 @@ always@(posedge clk)begin
 end 
 
 
-reg [12:0] x_mcu_0,y_mcu_0;
-reg [12:0] x_mcu_1,y_mcu_1;
-
-
-always@(posedge clk)
-  if(rst)begin
-    full_0 <= 0;
-    x_mcu_0 <= 0;  y_mcu_0 <= 0;
-  end else if(state == `state_rst)begin
-  	full_0 <= 0;
-    x_mcu_0 <= 0;  y_mcu_0 <= 0;  
-  end else if(rgb_state == `rgb_state_store & pp_rgb == 0)begin
-    full_0 <= 1;
-    x_mcu_0 <= x_mcu_rgb;  y_mcu_0 <= y_mcu_rgb;
-  end else if(out_state == `out_state_out2 & rd & pp_rgb == 1)
-    full_0 <= 0; 
-
-always@(posedge clk)
-  if(rst)begin
-    full_1 <= 0;
-    x_mcu_1 <= 0;  y_mcu_1 <= 0;
-  end else if(state == `state_rst)begin
-  	full_1 <= 0;
-    x_mcu_1 <= 0;  y_mcu_1 <= 0;  
-  end else if(rgb_state == `rgb_state_store & pp_rgb == 1)begin
-    full_1 <= 1;
-    x_mcu_1 <= x_mcu_rgb;  y_mcu_1 <= y_mcu_rgb;
-  end else if(out_state == `out_state_out2 & rd & pp_rgb == 0)
-    full_1 <= 0; 
-    
-
-assign fifo_full = pp_rgb == 0 ? full_1 : full_0;
-assign out_end = pp_rgb == 0 ? ~full_1 : ~full_0;
-
-reg [7:0] rgb_x;
-
-wire [7:0] rgb_x_n = rgb_x + 8'd1;
-
-always@(posedge clk)
-  if(rst)
-    rgb_x <= 0;
-  else if(state == `state_rst)
-    rgb_x <= 0;
-  else if(out_state == `out_state_idle & fifo_full)  
-    rgb_x <= rgb_x_n;
-  else if(out_state == `out_state_out & rd)  
-    rgb_x <= rgb_x_n;
-  else if(out_state == `out_state_out2 & rd)
-    rgb_x <= 0;  
- 
-reg [5:0] c_adr;  
-always@(posedge clk)
-  if(rst)
-    c_adr <= 0;
-  else if(state == `state_rst)
-    c_adr <= 0;
-  else if(out_state == `out_state_idle & fifo_full)  
-    c_adr <= pic_is_411 ? {rgb_x_n[7:5],rgb_x_n[3:1]} : rgb_x_n[5:0];
-  else if(out_state == `out_state_out & rd)  
-    c_adr <= pic_is_411 ? {rgb_x_n[7:5],rgb_x_n[3:1]} : rgb_x_n[5:0];
-  else if(out_state == `out_state_out2 & rd)
-    c_adr <= 0;  
-
-    
-assign last_one = pic_is_411 ? rgb_x == 8'd255 : rgb_x == 8'd63;
-
-wire [15:0] y_cur = pp_rgb == 0 ? y1[rgb_x] : y0[rgb_x];
-wire [15:0] cr_cur = pp_rgb == 0 ? cr1[c_adr] : cr0[c_adr];                                                                 
-wire [15:0] cb_cur = pp_rgb == 0 ? cb1[c_adr] : cb0[c_adr];
-
-
-wire [7:0] outr,outg,outb;
-
-calrgb calrgb(
-.y(y_cur),.cr(cr_cur),.cb(cb_cur),
-.outr(outr),.outg(outg),.outb(outb));
-
-always@(posedge clk)
-  if(rst)begin
-     r <= 0;
-     g <= 0;
-     b <= 0;  
-  end else if(out_state == `out_state_idle & fifo_full)begin
-   	r <= outr;
-    g <= outg;
-    b <= outb;
-  end else if(out_state == `out_state_out & rd)begin
-  	r <= outr;
-    g <= outg;
-    b <= outb;
-  end 
-      
-assign rgb_i = rgb_x - 8'd1;  
- 
-always@(posedge clk)
-  if(rst)begin
-  	x_mcu_o <= 0;
-  	y_mcu_o <= 0;
-  end else if(out_state == `out_state_idle & fifo_full)begin
-  	if(pp_rgb == 0)begin
-  		x_mcu_o <= x_mcu_1;
-  	  y_mcu_o <= y_mcu_1;
-  	end else begin
-  		x_mcu_o <= x_mcu_0;
-  	  y_mcu_o <= y_mcu_0;
-  	end 	
-  end  
- 
-    
-    
 endmodule
 
 
 module calrgb(
-input [15:0] y , cr, cb,
-output [7:0] outr,outg,outb
+	input [15:0] y , cr, cb,
+	output [7:0] outr,outg,outb
 );
 
-wire [22:0] cb_ = {{7{cb[15]}},cb};
-wire [22:0] cr_ = {{7{cr[15]}},cr};
+	wire [22:0] cb_ = {{7{cb[15]}},cb};
+	wire [22:0] cr_ = {{7{cr[15]}},cr};
 
-//$signed({{12{cb[15]}},cb}) * $signed(28'd5742);
-wire [22:0] cb_r_4096 = (cb_ << 12) + (cb_ << 10) + (cb_ << 9) + (cb_ << 7) - (cb_ << 4) - (cb_ << 1);
-//$signed({{12{cr[15]}},cr}) * $signed(28'd1409)
-wire [22:0] cr_g_4096 = (cr_ << 10) + (cr_ << 8) + (cr_ << 7) + cr_;
-//$signed({{12{cb[15]}},cb}) * $signed(28'd2925)
-wire [22:0] cb_g_4096 = (cb_ << 11) + (cb_ << 9) + (cb_ << 8) + (cb_ << 6) + 
-                        (cb_ << 5) + (cb_ << 3) + (cb_ << 2) + cb_;
-//$signed({{12{cr[15]}},cr}) * $signed(28'd7258)                                             
-wire [22:0] cr_b_4096 = (cr_ << 12) + (cr_ << 11) + (cr_ << 10) + (cr_ << 6) + 
-                        (cr_ << 4) + (cr_ << 3) + (cr_ << 1);
+	//$signed({{12{cb[15]}},cb}) * $signed(28'd5742);
+	wire [22:0] cb_r_4096 = (cb_ << 12) + (cb_ << 10) + (cb_ << 9) + (cb_ << 7) - (cb_ << 4) - (cb_ << 1);
+	//$signed({{12{cr[15]}},cr}) * $signed(28'd1409)
+	wire [22:0] cr_g_4096 = (cr_ << 10) + (cr_ << 8) + (cr_ << 7) + cr_;
+	//$signed({{12{cb[15]}},cb}) * $signed(28'd2925)
+	wire [22:0] cb_g_4096 = (cb_ << 11) + (cb_ << 9) + (cb_ << 8) + (cb_ << 6) + 
+							(cb_ << 5) + (cb_ << 3) + (cb_ << 2) + cb_;
+	//$signed({{12{cr[15]}},cr}) * $signed(28'd7258)                                             
+	wire [22:0] cr_b_4096 = (cr_ << 12) + (cr_ << 11) + (cr_ << 10) + (cr_ << 6) + 
+							(cr_ << 4) + (cr_ << 3) + (cr_ << 1);
 
-wire[10:0] outr_ = 11'd128 + y[10:0] + cb_r_4096[22:12];
-wire[10:0] outg_ = 11'd128 + y[10:0] - cr_g_4096[22:12] - cb_g_4096[22:12];
-wire[10:0] outb_ = 11'd128 + y[10:0] + cr_b_4096[22:12];
+	wire[10:0] outr_ = 11'd128 + y[10:0] + cb_r_4096[22:12];
+	wire[10:0] outg_ = 11'd128 + y[10:0] - cr_g_4096[22:12] - cb_g_4096[22:12];
+	wire[10:0] outb_ = 11'd128 + y[10:0] + cr_b_4096[22:12];
 
-assign outr = outr_[10] ? 8'b0 : 
-              outr_ > 11'd255 ? 8'd255 : outr_[7:0];
+	assign outr = outr_[10] ? 8'b0 : 
+			outr_ > 11'd255 ? 8'd255 : outr_[7:0];
 
-assign outg = outg_[10] ? 8'b0 : 
-              outg_ > 11'd255 ? 8'd255 : outg_[7:0];
-              
-assign outb = outb_[10] ? 8'b0 : 
-              outb_ > 11'd255 ? 8'd255 : outb_[7:0];              
+	assign outg = outg_[10] ? 8'b0 : 
+			outg_ > 11'd255 ? 8'd255 : outg_[7:0];
+				
+	assign outb = outb_[10] ? 8'b0 : 
+            outb_ > 11'd255 ? 8'd255 : outb_[7:0];              
 
 endmodule

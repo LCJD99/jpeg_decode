@@ -81,9 +81,6 @@
 `define rgb_state_store 2'd1
 `define rgb_state_wait  2'd3
 
-`define out_state_idle  2'd0
-`define out_state_out   2'd1
-`define out_state_out2  2'd2
 
 /*
 `define c1_16  35'd4017

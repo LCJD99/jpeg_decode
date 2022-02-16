@@ -1,74 +1,59 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
+//---------------------------------------------------------------
+// jpeg stream buffer 
+// if stream is 0xff00, discard 00
+// if stream is end, user shoule pull in datas continue 
+//---------------------------------------------------------------
 module jpeg_stream(
-input clk,rst,
+    input         ai_we,
+    output        ao_next,
+    input [7:0]   ai_data,
 
-input [7:0] din,
-input we,
-output next,
+    output        bit_avali,
+    output [63:0] bit_out,
+    input  [6:0]  bit_eaten,         
 
-
-input [7:0] pc_delta,
-output [63:0] bit_out,
-output bit_avali
-
+    input clk,
+    input rst
 );
 
-reg [95:0] bit_stream;
-reg [7:0] point;
-
-
-assign bit_out = bit_stream[95:32];
-assign bit_avali = point > 8'd63;
-
-wire ridzero;
-wire addff;
-reg close_next;
-
-
-always@(posedge clk)
-  if(rst)
-    point <= 0;
-  else if(we & next)begin
-  	if(ridzero)
-  	  point <= point - pc_delta;
-  	else if(addff)  
-  	  point <= 8'd95;
-  	else
-      point <= point - pc_delta + 8'd8;
-  end else if(close_next)
-    point <= 8'd95;
-  else   
-    point <= point - pc_delta;
+    reg [7:0] lastword;
+    always@(posedge clk)begin
+        if(rst)
+            lastword <= 0;
+        else if(ai_we & ao_next)  
+            lastword <= ai_data;
+    end
     
-    
-assign next = point < 8'd89;
-wire [95:0] din_ext = we & next ? {88'b0,din} << (8'd88 - point) : 96'd0;
+    wire ridzero = ai_data == 8'h00 & lastword == 8'hff;    
 
-always@(posedge clk)
-  if(rst)
-    bit_stream <= 0;
-  else 
-    bit_stream <= (bit_stream | din_ext) << pc_delta ;      
-      
-reg [7:0] lastword;
-always@(posedge clk)
-  if(rst)
-    lastword <= 0;
-  else if(we & next)  
-    lastword <= din;
-    
-assign ridzero = we & next & din == 8'h00 & lastword == 8'hff;    
-assign addff   = we & next & din == 8'hd9 & lastword == 8'hff; 
+    reg [6:0]   point;   // count of avali bits
+    reg [127:0] bit_buffer;
+    always@(posedge clk) begin
+        if (rst) 
+            point <= 'd0;
+		else if (ai_we & ao_next)begin
+            if (ridzero)
+                point <= point - bit_eaten;
+            else
+                point <= point - bit_eaten + 'd8;
+        end else
+			point <= point - bit_eaten;
+	end 
 
+    always@(posedge clk)begin
+        if(rst)
+            bit_buffer <= 'd0;
+        else if (ai_we & ao_next)begin
+            if (ridzero)
+                bit_buffer <= bit_buffer << bit_eaten ;      
+            else
+                bit_buffer <= (bit_buffer | ({ai_data,120'd0} >> point)) << bit_eaten ;      
+        end else 
+            bit_buffer <= bit_buffer << bit_eaten ;      
+    end
 
-always@(posedge clk)
-  if(rst)
-    close_next <= 0;
-  else if(addff)  
-    close_next <= 1;
-  else if(close_next & bit_stream[95:80] == 16'hffd9)
-    close_next <= 0;
+    assign bit_out = bit_buffer[127:64];
+    assign bit_avali = point[6];  //point > 63;
+    assign ao_next = point < 7'd119;
 
 endmodule 

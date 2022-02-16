@@ -1,6 +1,3 @@
-`include "timescale.v"
-`include "jpeg_defines.v"
-
 module jpeg_htqt(
 input clk,rst,
 
