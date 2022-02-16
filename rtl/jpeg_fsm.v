@@ -3,8 +3,6 @@ input clk,rst,
 
 input        bit_avali,
 input [63:0] bit_out,
-input        rd,
-output       ready,
 
 output reg [3:0] state,
 output reg [2:0] dqt_state,
@@ -20,9 +18,9 @@ output reg [1:0] idct1_state,
 output reg [1:0] idct2_state,
 output reg [1:0] rgb_state,
 
-input pic_is_411,
+input        pic_is_411,
 input [15:0] width,heigth,
-output reg [12:0] mcu_w,mcu_h,
+input [12:0] mcu_w,mcu_h,
 
 output soi_find,
 output sof_find,
@@ -195,24 +193,6 @@ always@(posedge clk)
   
 
 
-
-
-always@(posedge clk)
-  if(rst)begin
-  	mcu_w <= 0;
-  	mcu_h <= 0;
-  end else if(state == `state_rst)begin
-  	mcu_w <= 0;
-  	mcu_h <= 0;
-  end else if(bit_avali & state == `state_sos & sos_end)begin
-  	if(pic_is_411)begin
-  		mcu_w <= width[3:0] == 4'd0  ? {1'b0,width[15:4]}  : {1'b0,width[15:4]} + 13'd1;
-      mcu_h <= heigth[3:0] == 4'd0 ? {1'b0,heigth[15:4]} : {1'b0,heigth[15:4]} + 13'd1;   
-  	end else begin
-  		mcu_w <= width[2:0] == 4'd0  ? width[15:3]  : width[15:3] + 13'd1;
-  	  mcu_h <= heigth[2:0] == 4'd0 ? heigth[15:3] : heigth[15:3] + 13'd1;
-  	end 
-  end 
 
 reg [15:0] mcu_num;
 

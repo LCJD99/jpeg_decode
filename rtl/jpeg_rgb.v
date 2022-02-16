@@ -1,20 +1,24 @@
 module jpeg_rgb(
 
 	output          bo_we,
+	output          bo_begin,
+    output          bo_end,
 	output [7:0]    bo_r,
 	output [7:0]    bo_g,
 	output [7:0]    bo_b,
 	output [7:0]    bo_adr,
+	output [12:0]   bo_x_mcu,
+    output [12:0]   bo_y_mcu,
 	input           bi_next,
 	
+	input [3:0]  state,
+	input [1:0]  idct2_state,
+	input [1:0]  rgb_state,
 
-	input [3:0] state,
-	input [1:0] idct2_state,
-	input [1:0] rgb_state,
-
-	input pic_is_411,
-	input [3:0] i_in_mcu_i2,
-
+	input        pic_is_411,
+	input [3:0]  i_in_mcu_i2,
+	input [12:0] mcu_w,
+	input [12:0] mcu_h,
 
 	input [15:0] out_00,out_01,out_02,out_03,out_04,out_05,out_06,out_07,
 	input [15:0] out_10,out_11,out_12,out_13,out_14,out_15,out_16,out_17,
@@ -28,7 +32,6 @@ module jpeg_rgb(
 	output reg out_empty,
 
 	input  [12:0] x_mcu_rgb,y_mcu_rgb,
-	output [12:0] x_mcu_o,y_mcu_o,
 
 	input clk,
 	input rst
@@ -132,7 +135,7 @@ module jpeg_rgb(
 		.din   ( {outr, outg, outb, y_adr, x_mcu_out, y_mcu_out} ),
 		.full  ( fifo_out_full ),
 		.rd    ( bi_next ),
-		.dout  ( {bo_r, bo_g, bo_b, bo_adr, x_mcu_o, y_mcu_o} ),
+		.dout  ( {bo_r, bo_g, bo_b, bo_adr, bo_x_mcu, bo_y_mcu} ),
 		.empty ( fifo_out_empty ),
 
 		.clk(clk),
@@ -140,6 +143,11 @@ module jpeg_rgb(
 	);
 
 	assign bo_we = !fifo_out_empty;
+	assign bo_begin = bo_x_mcu == 0 & bo_y_mcu == 0 & bo_adr == 0;
+	assign bo_end = 
+		bo_x_mcu == mcu_w - 13'd1 & 
+		bo_y_mcu == mcu_h - 13'd1 & 
+        ((bo_adr == 8'd255 & pic_is_411) | (bo_adr == 8'd63 & !pic_is_411));
 
 //---------------------------------------
 //---------------------------------------

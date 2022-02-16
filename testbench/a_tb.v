@@ -41,45 +41,46 @@ module a_tb();
     wire        bo_we;
     wire        bo_begin;
     wire        bo_end;
-    wire [31:0] bo_data;
-    wire        bo_type;
+    wire [7:0]  bo_r;
+    wire [7:0]  bo_g;
+    wire [7:0]  bo_b;
+    wire [7:0]  bo_adr;
+    wire [12:0] bo_x_mcu;
+    wire [12:0] bo_y_mcu;
+
+    wire          co_en;
+	wire          co_411;
+	wire [15:0]   co_width;
+	wire [15:0]   co_heigth;
+	wire [12:0]   co_mcu_w;           
+	wire [12:0]   co_mcu_h;       
     jpeg_top jpeg_top( 
         .ai_we    ( ai_we ),
         .ao_next  ( ao_next ),
         .ai_data  ( ai_data ), 
         
-        .bo_we    ( bo_we ), 
-        .bi_next  ( bi_next ),   
-        .bo_begin ( bo_begin ), 
-        .bo_end   ( bo_end ), 
-        .bo_data  ( bo_data ), 
-        .bo_type  ( bo_type ),
+        .bo_we    ( bo_we ),
+        .bi_next  ( bi_next ),
+        .bo_begin ( bo_begin ),
+        .bo_end   ( bo_end ),
+        .bo_r     ( bo_r ),
+        .bo_g     ( bo_g ),
+        .bo_b     ( bo_b ),
+        .bo_x_mcu ( bo_x_mcu ),
+        .bo_y_mcu ( bo_y_mcu ),
+        .bo_adr   ( bo_adr ),
+
+        .co_en     ( co_en ),
+	    .co_411    ( co_411 ),
+	    .co_width  ( co_width ),
+	    .co_heigth ( co_heigth ),
+	    .co_mcu_w  ( co_mcu_w ),           
+	    .co_mcu_h  ( co_mcu_h ),        
 
         .clk(clk),
         .rst(rst)
     );
 
-
-//-----------------------------------------------
-// output sequence:
-//-----------------------------------------------
-// pix in block(16x16)
-//    +----+----+----+----+---------+
-//    | p0 | p1 | p2 | p3 | ... p15 | 
-//    +----+----+----+----+---------+
-//    |p16 |p17 | ......            
-//    +----+----+
-//    
-// blocks in picture eg. 80x80
-//    +----+----+----+-----------+
-//    | b0 | b1 | b2 | ...    b4 |
-//    +----+----+----+-----------+
-//    | b5 | ...... 
-//    +----+
-// 
-// sequence:
-//   b0p0,  b0p1, ... b0p255, b1p0, ... bnp255
-//-----------------------------------------------
 
     reg [31:0] pix_cnt;
     always@(posedge clk)begin
@@ -114,9 +115,9 @@ module a_tb();
 
     always@(posedge clk)begin
         if(bi_next & bo_we)begin
-            rr[y*976 + x] <= bo_data[31:24];
-            gg[y*976 + x] <= bo_data[23:16];
-            bb[y*976 + x] <= bo_data[15:8];
+            rr[y*976 + x] <= bo_r;
+            gg[y*976 + x] <= bo_g;
+            bb[y*976 + x] <= bo_b;
         end
     end 
 
