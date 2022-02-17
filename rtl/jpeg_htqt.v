@@ -255,6 +255,7 @@ assign dht_cal_end = dht_cal_state == `dht_cal_state_do & dht_cal_i == 3'd7 & dh
 
 
 wire [7:0] dht_cnt_cur = dht_cnt_dat[63 - dht_cal_ix8 -: 8];
+wire [7:0] dht_cnt_cur_m1 = dht_cnt_cur - 'd1;
 
 reg [15:0] dht_cnt_acc;
 always@(posedge clk)
@@ -453,12 +454,11 @@ always@(posedge clk)
   if(bit_avali & dht_state == `dht_state_item & dht_type == 1 & dht_id == 1)
     dht_valu_ac1[dht_item_i] <= bit_out[63:56];
 
-
-assign dht_loop_end = dht_cal_state == `dht_cal_state_do ? 
-                      (dht_type == 0 & dht_id == 0 ? i_dc0 == dht_cnt_cur - 8'd1 : 
-                       dht_type == 0 & dht_id == 1 ? i_dc1 == dht_cnt_cur - 8'd1 :
-                       dht_type == 1 & dht_id == 0 ? i_ac0 == dht_cnt_cur - 8'd1 :
-                       i_ac1 == dht_cnt_cur - 8'd1) : 1'b0;
+wire 
+assign dht_loop_end = (dht_type == 0 & dht_id == 0 ? i_dc0 == dht_cnt_cur_m1 : 
+                       dht_type == 0 & dht_id == 1 ? i_dc1 == dht_cnt_cur_m1 :
+                       dht_type == 1 & dht_id == 0 ? i_ac0 == dht_cnt_cur_m1 :
+                                                     i_ac1 == dht_cnt_cur_m1 ;
 //------------------------------
 
 wire is_y = (pic_is_411 & i_in_mcu < 4) | (!pic_is_411 & i_in_mcu == 0);

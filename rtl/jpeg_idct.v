@@ -213,18 +213,26 @@ reg [34:0] s7 [7:0];
 
 always@(posedge clk)
   if(dq_state == `dq_state_wait & idct1_state == `idct1_state_idle)begin
-  	s0[0] <= x_c4(in_00 + in_04);  s0[1] <= x_c4(in_10 + in_14);
-  	s0[2] <= x_c4(in_20 + in_24);  s0[3] <= x_c4(in_30 + in_34);
-  	s0[4] <= x_c4(in_40 + in_44);  s0[5] <= x_c4(in_50 + in_54);
-  	s0[6] <= x_c4(in_60 + in_64);  s0[7] <= x_c4(in_70 + in_74);
+  	s0[0] <= x_c4(in_00 + in_04);  
+    s0[1] <= x_c4(in_10 + in_14);
+  	s0[2] <= x_c4(in_20 + in_24); 
+    s0[3] <= x_c4(in_30 + in_34);
+  	s0[4] <= x_c4(in_40 + in_44);  
+    s0[5] <= x_c4(in_50 + in_54);
+  	s0[6] <= x_c4(in_60 + in_64);  
+    s0[7] <= x_c4(in_70 + in_74);
   end 
 
 always@(posedge clk)
   if(dq_state == `dq_state_wait & idct1_state == `idct1_state_idle)begin
-  	s1[0] <= x_c4(in_00 - in_04);  s1[1] <= x_c4(in_10 - in_14);
-  	s1[2] <= x_c4(in_20 - in_24);  s1[3] <= x_c4(in_30 - in_34);
-  	s1[4] <= x_c4(in_40 - in_44);  s1[5] <= x_c4(in_50 - in_54);
-  	s1[6] <= x_c4(in_60 - in_64);  s1[7] <= x_c4(in_70 - in_74);
+  	s1[0] <= x_c4(in_00 - in_04);  
+    s1[1] <= x_c4(in_10 - in_14);
+  	s1[2] <= x_c4(in_20 - in_24);  
+    s1[3] <= x_c4(in_30 - in_34);
+  	s1[4] <= x_c4(in_40 - in_44);  
+    s1[5] <= x_c4(in_50 - in_54);
+  	s1[6] <= x_c4(in_60 - in_64);  
+    s1[7] <= x_c4(in_70 - in_74);
   end
   
 always@(posedge clk)

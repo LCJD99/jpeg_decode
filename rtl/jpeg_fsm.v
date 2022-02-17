@@ -146,12 +146,12 @@ always@(posedge clk)
     	`dht_state_idle:  dht_state <= dht_find ? `dht_state_size : `dht_state_idle;
     	`dht_state_size:  dht_state <= `dht_state_tabl;
     	`dht_state_tabl:  dht_state <= `dht_state_cnth;
-      `dht_state_cnth:  dht_state <= `dht_state_calh;
-      `dht_state_calh:  dht_state <= dht_cal_end ? `dht_state_cntl : `dht_state_calh;
-      `dht_state_cntl:  dht_state <= `dht_state_call;
-      `dht_state_call:  dht_state <= dht_cal_end ? `dht_state_item : `dht_state_call;
-      `dht_state_item:  dht_state <= dht_item_end ? `dht_state_judg : `dht_state_item;
-      `dht_state_judg:  dht_state <= dht_end ? `dht_state_idle : `dht_state_size;
+		`dht_state_cnth:  dht_state <= `dht_state_calh;
+		`dht_state_calh:  dht_state <= dht_cal_end ? `dht_state_cntl : `dht_state_calh;
+		`dht_state_cntl:  dht_state <= `dht_state_call;
+		`dht_state_call:  dht_state <= dht_cal_end ? `dht_state_item : `dht_state_call;
+		`dht_state_item:  dht_state <= dht_item_end ? `dht_state_judg : `dht_state_item;
+		`dht_state_judg:  dht_state <= dht_end ? `dht_state_idle : `dht_state_size;
     	default:;
     endcase
   end else if(state == `state_dht)begin
@@ -169,9 +169,9 @@ always@(posedge clk)
   else if(dht_state == `dht_state_calh | dht_state == `dht_state_call)begin
   	case(dht_cal_state)
   		`dht_cal_state_idle: dht_cal_state <= `dht_cal_state_do;
-  		`dht_cal_state_do:   dht_cal_state <= dht_loop_end ? 
-  		                (dht_cal_end ? `dht_cal_state_idle : `dht_cal_state_do) 
-  		                                                   : `dht_cal_state_do;
+  		`dht_cal_state_do:   dht_cal_state <= 
+		  	dht_loop_end ? 
+			  (dht_cal_end ? `dht_cal_state_idle : `dht_cal_state_do)  : `dht_cal_state_do;
   		default:;
   	endcase
   end   
