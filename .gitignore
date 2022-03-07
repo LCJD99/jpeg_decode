@@ -4,3 +4,5 @@
 *.vcd
 *.out
 *.gtkw
+testbench/obj_dir/*
+testbench/transcript
