@@ -48,7 +48,7 @@ output reg signed [23:0] qt_out_70,qt_out_71,qt_out_72,qt_out_73,qt_out_74,qt_ou
 
 );
 
-
+/* verilator lint_off WIDTH */
 reg [15:0] dqt_size;
 
 always@(posedge clk)
@@ -454,8 +454,8 @@ always@(posedge clk)
   if(bit_avali & dht_state == `dht_state_item & dht_type == 1 & dht_id == 1)
     dht_valu_ac1[dht_item_i] <= bit_out[63:56];
 
-wire 
-assign dht_loop_end = (dht_type == 0 & dht_id == 0 ? i_dc0 == dht_cnt_cur_m1 : 
+ 
+assign dht_loop_end =  dht_type == 0 & dht_id == 0 ? i_dc0 == dht_cnt_cur_m1 : 
                        dht_type == 0 & dht_id == 1 ? i_dc1 == dht_cnt_cur_m1 :
                        dht_type == 1 & dht_id == 0 ? i_ac0 == dht_cnt_cur_m1 :
                                                      i_ac1 == dht_cnt_cur_m1 ;
@@ -730,5 +730,5 @@ always@(posedge clk)
   	qt_out_76 <= $signed(qt_tmp[62]) * $signed(ot_tmp[62]);
   	qt_out_77 <= $signed(qt_tmp[63]) * $signed(ot_tmp[63]);
   end 
-
+/* verilator lint_on WIDTH */
 endmodule

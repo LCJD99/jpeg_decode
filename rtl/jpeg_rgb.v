@@ -69,6 +69,9 @@ module jpeg_rgb(
 //------------------------------------------------
 // y,cb,cr addr for output
 //------------------------------------------------
+	wire        fifo_out_full;
+	wire        fifo_out_empty;
+	
 	reg  [7:0] y_adr;
 	reg  [5:0] c_adr; 
 
@@ -128,8 +131,7 @@ module jpeg_rgb(
 		end  
 	end
 
-	wire        fifo_out_full;
-	wire        fifo_out_empty;
+	
 	fifo_sync #(.AW(1), .DW(58)) fifo_out(
 		.wr    ( !out_empty ),
 		.din   ( {outr, outg, outb, y_adr, x_mcu_out, y_mcu_out} ),

@@ -109,8 +109,8 @@ always@(posedge clk)
 				co_mcu_w <= co_width[3:0] == 4'd0  ? {1'b0,co_width[15:4]}  : {1'b0,co_width[15:4]} + 13'd1;
 				co_mcu_h <= co_heigth[3:0] == 4'd0 ? {1'b0,co_heigth[15:4]} : {1'b0,co_heigth[15:4]} + 13'd1;   
 			end else begin
-				co_mcu_w <= co_width[2:0] == 4'd0  ? co_width[15:3]  : co_width[15:3] + 13'd1;
-				co_mcu_h <= co_heigth[2:0] == 4'd0 ? co_heigth[15:3] : co_heigth[15:3] + 13'd1;
+				co_mcu_w <= co_width[2:0] == 'd0  ? co_width[15:3]  : co_width[15:3] + 13'd1;
+				co_mcu_h <= co_heigth[2:0] == 'd0 ? co_heigth[15:3] : co_heigth[15:3] + 13'd1;
 			end 
 		end
 	end
