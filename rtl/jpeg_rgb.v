@@ -1,3 +1,5 @@
+`include "jpeg_defines.v"
+
 module jpeg_rgb(
 
 	output          bo_we,
