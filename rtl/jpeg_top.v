@@ -1,4 +1,3 @@
-
 //-----------------------------------------------
 // output sequence:
 //-----------------------------------------------
@@ -20,27 +19,27 @@
 //   m0a0,  m0a1, ... m0a255, m1a0, ... mxa255
 //-----------------------------------------------
 module jpeg_top(
-    input           ai_we,
-    input  [7:0]    ai_data,
-    output          ao_next,
+    input           ai_we,      // input data write enable
+    input  [7:0]    ai_data,    // input data
+    output          ao_next,    // request for next input data
 
-    output          bo_we,     //output enable
-    output          bo_begin,  //first pix
-    output          bo_end,    //last pix
-	output [7:0]    bo_r,
-	output [7:0]    bo_g,
-	output [7:0]    bo_b,
-	output [7:0]    bo_adr,   //count in one mcu
-    output [12:0]   bo_x_mcu, //mcu x coordinate
-    output [12:0]   bo_y_mcu, //mcu y coordinate
-	input           bi_next,
+    output          bo_we,      // output enable
+    output          bo_begin,   // first pix of a mcu
+    output          bo_end,     // last pix of a mcu
+	output [7:0]    bo_r,       // output red
+	output [7:0]    bo_g,       // output green
+	output [7:0]    bo_b,       // output blue
+	output [7:0]    bo_adr,     // pixel address in one mcu
+    output [12:0]   bo_x_mcu,   // mcu x coordinate
+    output [12:0]   bo_y_mcu,   // mcu y coordinate
+	input           bi_next,    // next data request
 
-    output          co_en,     // enable of co
-	output          co_411,
-	output [15:0]   co_width,
-	output [15:0]   co_heigth,
-	output [12:0]   co_mcu_w,  // mcu count in width         
-	output [12:0]   co_mcu_h,  // mcu count in heigth                
+    output          co_en,      // config output enable
+	output          co_411,     // 411 format or not
+	output [15:0]   co_width,   // picture width
+	output [15:0]   co_heigth,  // picture heigth
+	output [12:0]   co_mcu_w,   // mcu count in width         
+	output [12:0]   co_mcu_h,   // mcu count in heigth                
 
     input clk,
     input rst

@@ -14,17 +14,16 @@ module a_tb();
     end
 
     always 	#50 clk = ~clk;
-/*
+
     initial begin
-        $dumpfile("./aaa.vcd");
+        $dumpfile("./wave.vcd");
         $dumpvars(0,a_tb);
         //$dumpoff;
     end 
-*/
 
-    reg [7:0] mem [1048575:0];
+    reg [7:0] mem [65535:0];
     reg [19:0] pc;
-    initial $readmemh("../dat/test1.txt",mem);
+    initial $readmemh("../dat/red.mem",mem);
 
     wire        ai_we = 1;
     wire [7:0]  ai_data = mem[pc];
@@ -104,8 +103,8 @@ module a_tb();
     wire [7:0]  pix   = pix_cnt % 256; 
 
 
-    wire [31:0] x = block % 61 * 16 + pix % 16;     
-    wire [31:0] y = block / 61 * 16 + pix / 16;    
+    wire [31:0] x = block % 16 * 16 + pix % 16;     
+    wire [31:0] y = block / 16 * 16 + pix / 16;    
 
 
     reg [7:0] rr [952575 : 0];
@@ -143,12 +142,12 @@ module a_tb();
     integer file;
     always@(posedge clk)begin
         if(wr_file)begin
-            file = $fopen("res.pgm","w");
+            file = $fopen("red.ppm","w");
             $fdisplay (file,"%s","P3");
-            $fdisplay (file,"976 976");	
+            $fdisplay (file,"40 40");	
             $fdisplay (file,"%s","#spicec dump");
             $fdisplay (file,"255");	
-            for(j=0;j<952576;j=j+1)begin
+            for(j=0;j<1600;j=j+1)begin
                 $fdisplay (file,"%d", rr[j]);
                 $fdisplay (file,"%d", gg[j]);
                 $fdisplay (file,"%d", bb[j]);

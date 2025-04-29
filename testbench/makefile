@@ -13,11 +13,6 @@ verilator:
 	obj_dir/Vtb
 
 
-# vsim win10
-# modelsim:
-#	rm -rf work
-#	vsim -c -do ./tb_modelsim/sim.do
-
 clear_iverilog:
 	rm -rf a.out
 clear_verilator:
