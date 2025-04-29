@@ -6,3 +6,6 @@
 *.gtkw
 testbench/obj_dir/*
 testbench/transcript
+
+.cache/
+build/

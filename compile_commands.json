@@ -1,0 +1,360 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/term.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/term.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/term.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/term.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/nvboard.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/nvboard.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/nvboard.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/nvboard.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/font.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/font.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/font.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/font.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/segs7.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/segs7.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/segs7.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/segs7.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/uart.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/uart.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/uart.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/uart.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/timer.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/timer.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/timer.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/timer.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/button.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/button.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/button.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/button.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/led.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/led.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/led.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/led.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/event.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/event.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/event.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/event.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/keyboard.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/keyboard.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/keyboard.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/keyboard.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/switch.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/switch.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/switch.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/switch.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/vga.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/vga.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/vga.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/vga.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/component.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/component.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/component.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/component.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/include",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=\"Vjpeg_fpga_top\"",
+      "-c",
+      "-o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/render.o",
+      "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/render.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode",
+    "file": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/src/render.cpp",
+    "output": "/home/lcjd/code-workspace/ysyx-workbench/nvboard/build/render.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-I/usr/local/share/verilator/include",
+      "-I/usr/local/share/verilator/include/vltstd",
+      "-DVM_COVERAGE=0",
+      "-DVM_SC=0",
+      "-DVM_TRACE=0",
+      "-DVM_TRACE_FST=0",
+      "-DVM_TRACE_VCD=0",
+      "-faligned-new",
+      "-fcf-protection=none",
+      "-Wno-bool-operation",
+      "-Wno-sign-compare",
+      "-Wno-uninitialized",
+      "-Wno-unused-but-set-variable",
+      "-Wno-unused-parameter",
+      "-Wno-unused-variable",
+      "-Wno-shadow",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=Vjpeg_fpga_top",
+      "-Os",
+      "-c",
+      "-o",
+      "auto_bind.o",
+      "/home/lcjd/code-workspace/jpeg_decode/build/auto_bind.cpp"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir",
+    "file": "/home/lcjd/code-workspace/jpeg_decode/build/auto_bind.cpp",
+    "output": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir/auto_bind.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-I/usr/local/share/verilator/include",
+      "-I/usr/local/share/verilator/include/vltstd",
+      "-DVM_COVERAGE=0",
+      "-DVM_SC=0",
+      "-DVM_TRACE=0",
+      "-DVM_TRACE_FST=0",
+      "-DVM_TRACE_VCD=0",
+      "-faligned-new",
+      "-fcf-protection=none",
+      "-Wno-bool-operation",
+      "-Wno-sign-compare",
+      "-Wno-uninitialized",
+      "-Wno-unused-but-set-variable",
+      "-Wno-unused-parameter",
+      "-Wno-unused-variable",
+      "-Wno-shadow",
+      "-O3",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=Vjpeg_fpga_top",
+      "-Os",
+      "-c",
+      "-o",
+      "main.o",
+      "/home/lcjd/code-workspace/jpeg_decode/csrc/main.cc"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir",
+    "file": "/home/lcjd/code-workspace/jpeg_decode/csrc/main.cc",
+    "output": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-faligned-new",
+      "-fcf-protection=none",
+      "-Wno-bool-operation",
+      "-Wno-sign-compare",
+      "-Wno-uninitialized",
+      "-Wno-unused-but-set-variable",
+      "-Wno-unused-parameter",
+      "-Wno-unused-variable",
+      "-Wno-shadow",
+      "-O3",
+      "-Os",
+      "-I.",
+      "-I/usr/local/share/verilator/include",
+      "-I/usr/local/share/verilator/include/vltstd",
+      "-DVM_COVERAGE=0",
+      "-DVM_SC=0",
+      "-DVM_TRACE=0",
+      "-DVM_TRACE_FST=0",
+      "-DVM_TRACE_VCD=0",
+      "-I/usr/include/SDL2",
+      "-D_REENTRANT",
+      "-I/home/lcjd/code-workspace/ysyx-workbench/nvboard/usr/include",
+      "-DTOP_NAME=Vjpeg_fpga_top",
+      "-c",
+      "-fdiagnostics-color",
+      "-o",
+      "main.o",
+      "/home/lcjd/code-workspace/jpeg_decode/csrc/main.cc"
+    ],
+    "directory": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir",
+    "file": "/home/lcjd/code-workspace/jpeg_decode/csrc/main.cc",
+    "output": "/home/lcjd/code-workspace/jpeg_decode/build/obj_dir/main.o"
+  }
+]

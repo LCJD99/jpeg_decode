@@ -1,5 +1,5 @@
 module jpeg_fpga_top #(
-    parameter ROM_FILE = "red.mem",
+    parameter ROM_FILE = "/home/lcjd/code-workspace/jpeg_decode/data/rom.mem",
     parameter ROM_ADDR_WIDTH = 16,
     
     // VGA parameters (640x480@60Hz)
@@ -193,8 +193,8 @@ module jpeg_fpga_top #(
     wire [15:0] jpeg_pixel_x, jpeg_pixel_y;
     // Calculate actual pixel position based on MCU and pixel within MCU
     // For 4:1:1 format, each MCU is 16x16 pixels
-    assign jpeg_pixel_x = bo_x_mcu * 16 + (bo_adr % 16);
-    assign jpeg_pixel_y = bo_y_mcu * 16 + (bo_adr / 16);
+    assign jpeg_pixel_x = bo_x_mcu * 16 + ({8'b0, bo_adr} % 16);
+    assign jpeg_pixel_y = bo_y_mcu * 16 + ({8'b0, bo_adr} / 16);
     
     // Write address calculation
     // Clamp to frame buffer dimensions to avoid addressing outside buffer
@@ -204,7 +204,7 @@ module jpeg_fpga_top #(
     
     // Read address calculation                    
     wire [FB_ADDR_WIDTH-1:0] fb_rd_addr;
-    assign fb_rd_addr = vga_pixel_y * VGA_H_ACTIVE + vga_pixel_x;
+    assign fb_rd_addr = {6'b0, vga_pixel_y} * VGA_H_ACTIVE + {6'b0, vga_pixel_x};
     
     // Frame buffer RGB data
     wire [23:0] fb_wr_data;

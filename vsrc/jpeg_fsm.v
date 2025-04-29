@@ -1,3 +1,4 @@
+`include "jpeg_defines.v"
 module jpeg_fsm(
 input clk,rst,
 
