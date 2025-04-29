@@ -3,12 +3,11 @@ module jpeg_fpga_top #(
     parameter ROM_ADDR_WIDTH = 16,
     
     // VGA parameters (640x480@60Hz)
-    parameter VGA_H_ACTIVE = 640,
-    parameter VGA_V_ACTIVE = 480
+    parameter VGA_H_ACTIVE = 32,
+    parameter VGA_V_ACTIVE = 32 
 )(
     // System signals
     input             clk,          // System clock
-    input             clk_vga,      // VGA pixel clock (25MHz for 640x480@60Hz)
     input             rst,
     input             start,
     
@@ -46,6 +45,21 @@ module jpeg_fpga_top #(
     wire [7:0]  rom_data;
     wire        next_data_req;
     wire        rom_done;
+    // Address counter for ROM
+    reg [ROM_ADDR_WIDTH-1:0] rom_addr_counter;
+    
+    
+    // Generate VGA clock using clkgen (25MHz for 640x480@60Hz)
+    wire clk_vga;
+    clkgen #(
+        .sys_clk_freq(100000000),   // Assuming system clock is 100MHz
+        .out_clk_freq(25000000)     // VGA needs 25MHz for 640x480@60Hz
+    ) vga_clk_gen (
+        .clkin(clk),
+        .rst(rst),
+        .clken(1'b1),               // Always enable the clock
+        .clkout(clk_vga)
+    );
     
     // State machine for controlling data flow
     reg [1:0]   state;
@@ -53,47 +67,47 @@ module jpeg_fpga_top #(
                 DECODING = 2'b01,
                 DONE = 2'b10;
     
-    reg         decoding_active;
-    reg         next_pixel_req;
+    wire decoding_active = 1;
+    wire next_pixel_req = 1;
     
-    // State machine
-    always @(posedge clk) begin
-        if (rst) begin
-            state <= IDLE;
-            decoding_active <= 1'b0;
-        end else begin
-            case (state)
-                IDLE: begin
-                    if (start) begin
-                        state <= DECODING;
-                        decoding_active <= 1'b1;
-                    end
-                end
+    // // State machine
+    // always @(posedge clk) begin
+    //     if (rst) begin
+    //         state <= IDLE;
+    //         decoding_active <= 1'b0;
+    //     end else begin
+    //         case (state)
+    //             IDLE: begin
+    //                 if (start) begin
+    //                     state <= DECODING;
+    //                     decoding_active <= 1'b1;
+    //                 end
+    //             end
                 
-                DECODING: begin
-                    if (bo_end && bo_x_mcu == mcu_count_x-1 && bo_y_mcu == mcu_count_y-1) begin
-                        state <= DONE;
-                        decoding_active <= 1'b0;
-                    end
-                end
+    //             DECODING: begin
+    //                 if (bo_end && bo_x_mcu == mcu_count_x-1 && bo_y_mcu == mcu_count_y-1) begin
+    //                     state <= DONE;
+    //                     decoding_active <= 1'b0;
+    //                 end
+    //             end
                 
-                DONE: begin
-                    // Stay in DONE until reset
-                    decoding_active <= 1'b0;
-                end
+    //             DONE: begin
+    //                 // Stay in DONE until reset
+    //                 decoding_active <= 1'b0;
+    //             end
                 
-                default: state <= IDLE;
-            endcase
-        end
-    end
+    //             default: state <= IDLE;
+    //         endcase
+    //     end
+    // end
     
-    // Control next pixel request
+    
+    // ROM address counter logic
     always @(posedge clk) begin
         if (rst)
-            next_pixel_req <= 1'b0;
-        else
-            // We're always ready for the next pixel in this implementation
-            next_pixel_req <= 1'b1;
+            rom_addr_counter <= 0;
+        else if (next_data_req && decoding_active)
+            rom_addr_counter <= rom_addr_counter + 1;
     end
     
     // ROM instance
@@ -103,11 +117,12 @@ module jpeg_fpga_top #(
     ) u_jpeg_rom (
         .clk(clk),
         .rst(rst),
-        .rd_en(next_data_req && decoding_active),
+        .rd_en(1'b1),  
+        .addr_in(rom_addr_counter),
         .data_out(rom_data),
         .rom_done(rom_done)
     );
-    
+
     // JPEG decoder instance
     wire bo_we;     // Renamed for clarity and to align with tb
     wire bo_begin;
@@ -149,7 +164,18 @@ module jpeg_fpga_top #(
         .clk(clk),
         .rst(rst)
     );
-    
+
+    // Control next pixel request
+    // always @(posedge clk) begin
+    //     if (rst)
+    //         next_pixel_req <= 1'b0;
+    //     else
+    //         // We're always ready for the next pixel in this implementation
+    //         next_pixel_req <= 1'b1;
+    // end
+
+
+
     // Connect internal signals to outputs
     assign pixel_valid = bo_we;
     assign pixel_sof = bo_begin;
@@ -166,24 +192,6 @@ module jpeg_fpga_top #(
     
     // Decode done signal
     assign decode_done = (state == DONE);
-    
-    // VGA controller
-    wire vga_display_en;
-    wire [9:0] vga_pixel_x;
-    wire [9:0] vga_pixel_y;
-    
-    vga_controller #(
-        .H_ACTIVE(VGA_H_ACTIVE),
-        .V_ACTIVE(VGA_V_ACTIVE)
-    ) u_vga_controller (
-        .clk(clk_vga),
-        .rst(rst),
-        .hsync(vga_hsync),
-        .vsync(vga_vsync),
-        .display_en(vga_display_en),
-        .pixel_x(vga_pixel_x),
-        .pixel_y(vga_pixel_y)
-    );
     
     // Frame buffer to store decoded image
     localparam FB_ADDR_WIDTH = 16;  // Sufficient for 640x480 = 307,200 pixels
@@ -227,11 +235,29 @@ module jpeg_fpga_top #(
         .rd_addr(fb_rd_addr),
         .rd_data(fb_rd_data)
     );
+
+    // VGA controller
+    wire [9:0] vga_pixel_x;
+    wire [9:0] vga_pixel_y;
+    wire vga_display_en;
+    wire [23:0] vga_pixel_data;
     
-    // Output VGA RGB signals
-    // Only output color when in active display area, otherwise output black
-    assign vga_r = vga_display_en ? fb_rd_data[23:16] : 8'd0;
-    assign vga_g = vga_display_en ? fb_rd_data[15:8] : 8'd0;
-    assign vga_b = vga_display_en ? fb_rd_data[7:0] : 8'd0;
+    // Connect frame buffer data to VGA input
+    assign vga_pixel_data = vga_display_en ? fb_rd_data : 24'd0;
+    
+    vga_ctrl u_vga_ctrl (
+        .pclk(clk_vga),          // 25MHz clock
+        .reset(rst),             // reset signal
+        .vga_data(vga_pixel_data), // RGB pixel data from frame buffer
+        .h_addr(vga_pixel_x),    // current horizontal pixel address
+        .v_addr(vga_pixel_y),    // current vertical pixel address
+        .hsync(vga_hsync),       // horizontal sync
+        .vsync(vga_vsync),       // vertical sync
+        .valid(vga_display_en),  // display enable signal
+        .vga_r(vga_r),           // red output
+        .vga_g(vga_g),           // green output
+        .vga_b(vga_b)            // blue output
+    );
+    
 
 endmodule

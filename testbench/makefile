@@ -1,9 +1,10 @@
-include_dir = ../rtl
-rtl = ../rtl/*.v
+include_dir = ../vsrc
+rtl = ../vsrc/*.v
 
+TOP = new_tb
 
 iverilog:
-	iverilog -s a_tb -I $(include_dir)  $(rtl) ./tb_iverilog/a_tb.v
+	iverilog -s $(TOP) -I $(include_dir)  $(rtl) ./tb_iverilog/$(TOP).v
 	vvp a.out
 
 verilator:
