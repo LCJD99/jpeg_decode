@@ -1,0 +1,1 @@
+xxd -ps -c 1 $1 > rom.mem

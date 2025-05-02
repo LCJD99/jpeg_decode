@@ -23,7 +23,7 @@ module a_tb();
 
     reg [7:0] mem [65535:0];
     reg [19:0] pc;
-    initial $readmemh("../dat/red.mem",mem);
+    initial $readmemh("../data/red.mem",mem);
 
     wire        ai_we = 1;
     wire [7:0]  ai_data = mem[pc];
