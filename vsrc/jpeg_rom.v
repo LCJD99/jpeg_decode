@@ -10,7 +10,7 @@ module jpeg_rom #(
     output                   rom_done
 );
 
-    reg [7:0] rom [(2**ADDR_WIDTH)-1:0];
+    (* ram_style = "block" *) reg [7:0] rom [(2**ADDR_WIDTH)-1:0];
     
     // Load memory file at initialization
     initial begin

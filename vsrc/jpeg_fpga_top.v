@@ -35,9 +35,7 @@ module jpeg_fpga_top #(
     // VGA outputs
     output            vga_hsync,
     output            vga_vsync,
-    output [7:0]      vga_r,
-    output [7:0]      vga_g,
-    output [7:0]      vga_b
+    output [11:0]      vga_data_pin
 );
 
     // Internal signals
@@ -194,7 +192,7 @@ module jpeg_fpga_top #(
     assign decode_done = (state == DONE);
     
     // Frame buffer to store decoded image
-    localparam FB_ADDR_WIDTH = 16;  // Sufficient for 640x480 = 307,200 pixels
+    localparam FB_ADDR_WIDTH = 8; // Sufficient for 640x480 = 307,200 pixels
     
     // Calculate write address for frame buffer
     // Convert JPEG MCU-based addressing to linear frame buffer addressing
@@ -216,7 +214,7 @@ module jpeg_fpga_top #(
     
     // Frame buffer RGB data
     wire [23:0] fb_wr_data;
-    wire [23:0] fb_rd_data;
+    wire [11:0] fb_rd_data;
     
     assign fb_wr_data = {bo_r, bo_g, bo_b};
     
@@ -240,10 +238,12 @@ module jpeg_fpga_top #(
     wire [9:0] vga_pixel_x;
     wire [9:0] vga_pixel_y;
     wire vga_display_en;
-    wire [23:0] vga_pixel_data;
+    wire [11:0] vga_pixel_data;
+    wire [3:0] vga_r, vga_g, vga_b;
+    assign vga_data_pin = {vga_r, vga_g, vga_b};
     
     // Connect frame buffer data to VGA input
-    assign vga_pixel_data = vga_display_en ? fb_rd_data : 24'd0;
+    assign vga_pixel_data = vga_display_en ? fb_rd_data : 12'd0;
     
     vga_ctrl u_vga_ctrl (
         .pclk(clk_vga),          // 25MHz clock
